@@ -1141,16 +1141,31 @@ class SelectKeywordAnalysis {
 
 
 class Select2Query {
+    /**
+     * 
+     * @param  {...any} parms 
+     * @returns {Select2Query}
+     */
     setTables(...parms) {
-        this.tables = this.addTableData(parms);
+        this.tables = Select2Query.addTableData(parms);
         return this;
     }
 
+    /**
+     * 
+     * @param {Map<String,String>} tables 
+     * @returns {Select2Query}
+     */
     setTableMap(tables) {
         this.tables = tables;
         return this;
     }
 
+    /**
+     * 
+     * @param {any} selectStatement 
+     * @returns {String}
+     */
     convert(selectStatement) {
         let queryStatement = "";
         let ast = null;
@@ -1169,14 +1184,14 @@ class Select2Query {
         }
 
         if (typeof ast.JOIN !== 'undefined') {
-            let joinQuery = new QueryJoin(this.tables);
+            const joinQuery = new QueryJoin(this.tables);
             query = joinQuery.join(ast);
         }
         else {
-            queryStatement = this.selectFields(ast);
+            queryStatement = Select2Query.selectFields(ast);
             queryStatement += this.whereCondition(ast);
             queryStatement += this.groupBy(ast);
-            queryStatement += this.orderBy(ast);
+            queryStatement += Select2Query.orderBy(ast);
 
             query = this.formatAsQuery(queryStatement, ast.FROM.table);
         }
@@ -1186,13 +1201,24 @@ class Select2Query {
         return query;
     }
 
+    /**
+     * 
+     * @param {String} statement 
+     * @param {String} tableName 
+     * @returns {String}
+     */
     formatAsQuery(statement, tableName) {
-        let range = this.tables.has(tableName.toUpperCase()) ? this.tables.get(tableName.toUpperCase()) : "";
+        const range = this.tables.has(tableName.toUpperCase()) ? this.tables.get(tableName.toUpperCase()) : "";
 
-        return "=QUERY(" + range + ", \"" + statement + "\")";
+        return `=QUERY(${range}, "${statement}")`;
     }
 
-    addTableData(parms) {
+    /**
+     * 
+     * @param {String[]} parms 
+     * @returns {Map<String,String>}
+     */
+    static addTableData(parms) {
         const tables = new Map();
 
         //  Should be:  TABLE NAME, TABLE RANGE, name, range, name, range,...
@@ -1206,15 +1232,20 @@ class Select2Query {
         return tables;
     }
 
-    selectFields(ast) {
+    /**
+     * 
+     * @param {Object} ast 
+     * @returns {String}
+     */
+    static selectFields(ast) {
         let selectStr = "SELECT ";
         if (typeof ast.SELECT !== 'undefined') {
             for (let i = 0; i < ast.SELECT.length; i++) {
-                let fld = ast.SELECT[i];
+                const fld = ast.SELECT[i];
 
                 let fieldName = fld.name;
                 if (fld.name.indexOf(".") !== -1) {
-                    let parts = fld.name.split(".");
+                    const parts = fld.name.split(".");
                     fieldName = parts[1];
                 }
                 selectStr += fieldName.toUpperCase();
@@ -1229,10 +1260,10 @@ class Select2Query {
     }
 
     /**
-  * Retrieve filtered record ID's.
-  * @param {Object} ast - Abstract Syntax Tree
-  * @returns {String} - Query WHERE condition.
-  */
+     * Retrieve filtered record ID's.
+     * @param {Object} ast - Abstract Syntax Tree
+     * @returns {String} - Query WHERE condition.
+     */
     whereCondition(ast) {
         let queryWhere = "";
 
@@ -1262,7 +1293,7 @@ class Select2Query {
     resolveCondition(logic, terms, queryWhere) {
 
         for (let i = 0; i < terms.length; i++) {
-            let cond = terms[i];
+            const cond = terms[i];
 
             if (typeof cond.logic === 'undefined') {
                 queryWhere += this.whereString(cond);
@@ -1279,29 +1310,44 @@ class Select2Query {
         return queryWhere;
     }
 
+    /**
+     * 
+     * @param {Object} cond 
+     * @returns {String}
+     */
     whereString(cond) {
         let whereStr = "";
 
         switch (cond.operator) {
             case "NOT IN":
-                whereStr = " NOT " + this.whereValue(cond.left) + " " + this.whereOp("IN") + " " + this.whereValue(cond.right);
+                whereStr = ` NOT ${this.whereValue(cond.left)} ${Select2Query.whereOp("IN")} ${this.whereValue(cond.right)}`;
                 break;
             case "IN":
             default:
-                whereStr = " " + this.whereValue(cond.left) + " " + this.whereOp(cond.operator) + " " + this.whereValue(cond.right);
+                whereStr = ` ${this.whereValue(cond.left)} ${Select2Query.whereOp(cond.operator)} ${this.whereValue(cond.right)}`;
                 break;
         }
 
         return whereStr;
     }
 
-    whereOp(operator) {
+    /**
+     * 
+     * @param {String} operator 
+     * @returns {String}
+     */
+    static whereOp(operator) {
         if (operator.trim().toUpperCase() === 'IN')
             return "MATCHES";
 
         return operator;
     }
 
+    /**
+     * 
+     * @param {Object} cond 
+     * @returns {String}
+     */
     whereValue(cond) {
         if (typeof cond.SELECT === 'undefined') {
             return cond;
@@ -1316,7 +1362,12 @@ class Select2Query {
         }
     }
 
-    orderBy(ast) {
+    /**
+     * 
+     * @param {Object} ast 
+     * @returns {String}
+     */
+    static orderBy(ast) {
         let orderBy = "";
 
         if (typeof ast['ORDER BY'] === 'undefined') {
@@ -1325,7 +1376,7 @@ class Select2Query {
 
         orderBy = " ORDER BY "
         for (let i = 0; i < ast['ORDER BY'].length; i++) {
-            let order = ast['ORDER BY'][i];
+            const order = ast['ORDER BY'][i];
             orderBy += order.name + " " + order.order.toUpperCase();
 
             if (i + 1 < ast['ORDER BY'].length) {
@@ -1336,6 +1387,11 @@ class Select2Query {
         return orderBy;
     }
 
+    /**
+     * 
+     * @param {Object} ast 
+     * @returns {String}
+     */
     groupBy(ast) {
         let groupBy = "";
 
@@ -1361,14 +1417,23 @@ class Select2Query {
 }
 
 class QueryJoin {
+    /**
+     * 
+     * @param {Map<String,String>} tables 
+     */
     constructor(tables) {
         this.tables = tables;
     }
 
+    /**
+     * 
+     * @param {Object} ast 
+     * @returns {String}
+     */
     join(ast) {
         let query = "";
 
-        for (let joinAst of ast.JOIN) {
+        for (const joinAst of ast.JOIN) {
             query += this.joinCondition(ast.FROM.table, ast.SELECT, joinAst, ast);
         }
 
@@ -1411,7 +1476,7 @@ class QueryJoin {
         const notFoundQuery = this.selectNotInJoin(ast, joinAst, leftTable, rightTable);
 
         if (leftSelectFieldValue !== '' && rightSelectFieldValue !== '') {
-            rightSelectFieldValue = '&"!"&' + rightSelectFieldValue;
+            rightSelectFieldValue = `&"!"&${rightSelectFieldValue}`;
         }
 
         const joinFormatString = '={ArrayFormula(Split(Query(Flatten(IF($$LEFT_KEY$$=Split(Textjoin("!",1,$$RIGHT_KEY$$),"!"),$$LEFT_SELECT$$ $$RIGHT_SELECT$$,)),"Where Col1!=\'\'"),"!"))$$NO_MATCH$$}';
@@ -1435,32 +1500,46 @@ class QueryJoin {
      * @returns {String}
      */
     getKeyRangeString(tableName, condition) {
-        let tableInfo = this.tables.get(tableName.toUpperCase());
+        const tableInfo = this.tables.get(tableName.toUpperCase());
         let field = condition;
         if (condition.indexOf(".") !== -1) {
-            let parts = condition.split(".");
+            const parts = condition.split(".");
             field = parts[1];
         }
         let range = tableInfo;
         let rangeTable = "";
         if (range.indexOf("!") !== -1) {
-            let parts = range.split("!");
+            const parts = range.split("!");
             rangeTable = parts[0] + "!";
             range = parts[1];
         }
 
-        let rangeComponents = range.split(":");
-        let startRange = this.replaceColumn(rangeComponents[0], field);
-        let endRange = this.replaceColumn(rangeComponents[1], field);
+        const rangeComponents = range.split(":");
+        const startRange = QueryJoin.replaceColumn(rangeComponents[0], field);
+        const endRange = QueryJoin.replaceColumn(rangeComponents[1], field);
 
         return rangeTable + startRange + ":" + endRange;
     }
 
-    replaceColumn(rowColumn, newColumn) {
-        let num = rowColumn.replace(/\D/g, '');
+    /**
+     * 
+     * @param {String} rowColumn 
+     * @param {String} newColumn 
+     * @returns {String}
+     */
+    static replaceColumn(rowColumn, newColumn) {
+        const num = rowColumn.replace(/\D/g, '');
         return newColumn + num;
     }
 
+    /**
+     * 
+     * @param {Object} ast 
+     * @param {Object} joinAst 
+     * @param {String} leftTable 
+     * @param {String} rightTable 
+     * @returns {String}
+     */
     selectNotInJoin(ast, joinAst, leftTable, rightTable) {
         if (joinAst.type === 'inner') {
             return "";
@@ -1469,24 +1548,24 @@ class QueryJoin {
         leftTable = leftTable.toUpperCase();
 
         //  Sort fields so that LEFT table are first and RIGHT table are after.
-        const sortedFields = this.sortSelectJoinFields(ast, leftTable);
+        const sortedFields = QueryJoin.sortSelectJoinFields(ast, leftTable);
 
-        const selectFlds = this.createSelectFieldsString(sortedFields);
-        const label = this.createSelectLabelString(sortedFields);
-        const rightFieldName = this.getJoinField(joinAst, joinAst.cond.right, joinAst.cond.left);
-        const leftFieldName = this.getJoinField(joinAst, joinAst.cond.left, joinAst.cond.right);
+        const selectFlds = QueryJoin.createSelectFieldsString(sortedFields);
+        const label = QueryJoin.createSelectLabelString(sortedFields);
+        const rightFieldName = QueryJoin.getJoinField(joinAst, joinAst.cond.right, joinAst.cond.left);
+        const leftFieldName = QueryJoin.getJoinField(joinAst, joinAst.cond.left, joinAst.cond.right);
         const leftRange = this.tables.get(leftTable.toUpperCase());
         const rightRange = this.tables.get(rightTable.toUpperCase());
 
-        const queryStart = "QUERY(" + leftRange + ",";
-        let selectStr = queryStart + "\"select " + selectFlds + " where " + rightFieldName + " is not null and NOT " + rightFieldName + " MATCHES ";
+        const queryStart = `QUERY(${leftRange},`;
+        let selectStr = `${queryStart}"select ${selectFlds} where ${rightFieldName} is not null and NOT ${rightFieldName} MATCHES `;
 
-        const matchesQuery = '\'"&TEXTJOIN("|", true, QUERY(' + rightRange + ', "SELECT ' + leftFieldName + ' where ' + leftFieldName + ' is not null"))&';
+        const matchesQuery = `'"&TEXTJOIN("|", true, QUERY(${rightRange}, "SELECT ${leftFieldName} where ${leftFieldName} is not null"))&`;
         selectStr += matchesQuery;
         selectStr = selectStr + label + '", 0)';
 
         //  If no records are found, we need to insert an empty record - otherwise we get an array error.
-        selectStr = ";IFNA(" + selectStr + "," + this.ifNaResult(ast) + ")";
+        selectStr = `;IFNA(${selectStr},${QueryJoin.ifNaResult(ast)})`;
 
 
         return selectStr;
@@ -1499,7 +1578,7 @@ class QueryJoin {
      * @param {String} leftSide 
      * @returns {String}
      */
-    getJoinField(joinAst, rightSide, leftSide) {
+    static getJoinField(joinAst, rightSide, leftSide) {
         let fieldName = "";
         if (joinAst.type === 'right') {
             fieldName = rightSide;
@@ -1508,7 +1587,7 @@ class QueryJoin {
             fieldName = leftSide;
         }
         if (fieldName.indexOf(".") !== -1) {
-            let parts = fieldName.split(".");
+            const parts = fieldName.split(".");
             fieldName = parts[1];
         }
 
@@ -1527,23 +1606,23 @@ class QueryJoin {
      * @param {String} leftTable
      * @returns {JoinSelectField[]}
      */
-    sortSelectJoinFields(ast, leftTable) {
+    static sortSelectJoinFields(ast, leftTable) {
         //  Sort fields so that LEFT table are first and RIGHT table are after.
-        let leftFields = [];
-        let rightFields = [];
+        const leftFields = [];
+        const rightFields = [];
         let nullCnt = 1;
 
-        for (let fld of ast.SELECT) {
+        for (const fld of ast.SELECT) {
             let fieldTable = leftTable.toUpperCase();
             let fieldName = fld.name.toUpperCase();
             if (fld.name.indexOf(".") !== -1) {
-                let parts = fld.name.split(".");
+                const parts = fld.name.split(".");
                 fieldTable = parts[0].toUpperCase();
                 fieldName = parts[1].toUpperCase();
             }
 
-            let isNull = false;
-            let fieldInfo = {
+            const isNull = false;
+            const fieldInfo = {
                 fieldTable,
                 fieldName,
                 isNull
@@ -1553,7 +1632,7 @@ class QueryJoin {
                 leftFields.push(fieldInfo);
             }
             else {
-                fieldInfo.fieldName = "'null" + " ".repeat(nullCnt) + "'";
+                fieldInfo.fieldName = `'null${" ".repeat(nullCnt)}'`;
                 fieldInfo.isNull = true;
                 nullCnt++;
                 rightFields.push(fieldInfo);
@@ -1568,15 +1647,15 @@ class QueryJoin {
      * @param {Object} ast 
      * @returns {String}
      */
-    ifNaResult(ast) {
+    static ifNaResult(ast) {
         let naResult = "";
-        for (const element of ast.SELECT) {
-            naResult = (naResult === '') ? "" : naResult + ",";
+        for (let i = 0; i < ast.SELECT.length; i++) {
+            naResult = (naResult === '') ? "" : `${naResult},`;
             naResult += '""';
         }
 
         if (naResult !== "") {
-            naResult = "{" + naResult + "}";
+            naResult = `{${naResult}}`;
         }
 
         return naResult;
@@ -1587,11 +1666,11 @@ class QueryJoin {
      * @param {JoinSelectField[]} sortedFields 
      * @returns {String}
      */
-    createSelectFieldsString(sortedFields) {
+    static createSelectFieldsString(sortedFields) {
         let selectFlds = "";
 
-        for (let fld of sortedFields) {
-            selectFlds = (selectFlds === '' ? '' : selectFlds + ",") + fld.fieldName;
+        for (const fld of sortedFields) {
+            selectFlds = (selectFlds === '' ? '' : `${selectFlds},`) + fld.fieldName;
         }
 
         return selectFlds;
@@ -1602,18 +1681,18 @@ class QueryJoin {
     * @param {JoinSelectField[]} sortedFields 
     * @returns {String}
     */
-    createSelectLabelString(sortedFields) {
+    static createSelectLabelString(sortedFields) {
         let label = "";
 
-        for (let fld of sortedFields) {
+        for (const fld of sortedFields) {
             if (fld.isNull) {
-                label = label !== "" ? label += ", " : "";
+                label = label !== "" ? `${label}, ` : "";
                 label += fld.fieldName + " ''";
             }
         }
 
         if (label !== "") {
-            label = "\"' label " + label;
+            label = `"' label ${label}`;
         }
 
         return label;
@@ -1628,7 +1707,7 @@ class QueryJoin {
     leftSelectFields(ast, leftTable) {
         let leftSelect = "";
 
-        for (let fld of ast) {
+        for (const fld of ast) {
             let selectField = "";
 
             if (fld.name.indexOf(".") === -1) {
@@ -1653,12 +1732,12 @@ class QueryJoin {
                 }
 
                 const rangeComponents = range.split(":");
-                const startRange = this.replaceColumn(rangeComponents[0], selectField);
-                const endRange = this.replaceColumn(rangeComponents[1], selectField);
+                const startRange = QueryJoin.replaceColumn(rangeComponents[0], selectField);
+                const endRange = QueryJoin.replaceColumn(rangeComponents[1], selectField);
 
                 selectField = rangeTable + startRange + ":" + endRange;
 
-                leftSelect = leftSelect === '' ? '' : leftSelect + '&"!"& ';
+                leftSelect = leftSelect === '' ? '' : `${leftSelect}&"!"& `;
 
                 leftSelect += 'IF(' + selectField + ' <> "",' + selectField + ', " ")';
             }
@@ -1676,7 +1755,7 @@ class QueryJoin {
     rightSelectFields(ast, rightTable) {
         let rightSelect = "";
 
-        for (let fld of ast) {
+        for (const fld of ast) {
             let selectField = "";
 
             if (fld.name.indexOf(".") === -1) {
@@ -1701,12 +1780,12 @@ class QueryJoin {
                 }
 
                 const rangeComponents = range.split(":");
-                const startRange = this.replaceColumn(rangeComponents[0], selectField);
-                const endRange = this.replaceColumn(rangeComponents[1], selectField);
+                const startRange = QueryJoin.replaceColumn(rangeComponents[0], selectField);
+                const endRange = QueryJoin.replaceColumn(rangeComponents[1], selectField);
 
                 selectField = rangeTable + startRange + ":" + endRange;
 
-                rightSelect = rightSelect === '' ? '' : rightSelect + '&"!"& ';
+                rightSelect = rightSelect === '' ? '' : `${rightSelect}&"!"& `;
 
                 rightSelect += 'Split(Textjoin("!",1,IF(' + selectField + '<>"",' + selectField + '," ")),"!")';
             }

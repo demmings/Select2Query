@@ -1,4 +1,4 @@
-/*  *** DEBUG START ***
+//  *** DEBUG START ***
 //  Remove comments for testing in NODE
 export { SqlParse };
 //  *** DEBUG END ***/
