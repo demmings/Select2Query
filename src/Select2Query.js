@@ -5,6 +5,10 @@ import { SqlParse } from './SimpleParser.js';
 export { Select2Query };
 
 class Logger {
+    /**
+     * 
+     * @param {String} msg 
+     */
     static log(msg) {
         console.log(msg);
     }
@@ -62,7 +66,7 @@ class Select2Query {
         else {
             queryStatement = Select2Query.selectFields(ast);
             queryStatement += this.whereCondition(ast);
-            queryStatement += this.groupBy(ast);
+            queryStatement += Select2Query.groupBy(ast);
             queryStatement += Select2Query.orderBy(ast);
 
             query = this.formatAsQuery(queryStatement, ast.FROM.table);
@@ -264,7 +268,7 @@ class Select2Query {
      * @param {Object} ast 
      * @returns {String}
      */
-    groupBy(ast) {
+    static groupBy(ast) {
         let groupBy = "";
 
         if (typeof ast['GROUP BY'] === 'undefined') {
@@ -274,7 +278,7 @@ class Select2Query {
         groupBy += " GROUP BY ";
 
         for (let i = 0; i < ast['GROUP BY'].length; i++) {
-            let order = ast['GROUP BY'][i];
+            const order = ast['GROUP BY'][i];
             groupBy += order.name;
 
             if (i + 1 < ast['GROUP BY'].length) {
@@ -284,8 +288,6 @@ class Select2Query {
 
         return groupBy;
     }
-
-
 }
 
 class QueryJoin {
@@ -586,7 +588,7 @@ class QueryJoin {
                 selectField = fld.name;
             }
             else {
-                let parts = fld.name.split(".");
+                const parts = fld.name.split(".");
                 if (parts[0].toUpperCase() === leftTable.toUpperCase()) {
                     selectField = parts[1];
                 }
