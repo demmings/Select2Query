@@ -1666,7 +1666,7 @@ class QueryJoin {
         let rangeTable = "";
         if (range.indexOf("!") !== -1) {
             const parts = range.split("!");
-            rangeTable = parts[0] + "!";
+            rangeTable = `${parts[0]}!`;
             range = parts[1];
         }
 
@@ -1891,7 +1891,7 @@ class QueryJoin {
                 const startRange = QueryJoin.replaceColumn(rangeComponents[0], selectField);
                 const endRange = QueryJoin.replaceColumn(rangeComponents[1], selectField);
 
-                selectField = rangeTable + startRange + ":" + endRange;
+                selectField = `${rangeTable}${startRange}:${endRange}`;
 
                 leftSelect = leftSelect === '' ? '' : `${leftSelect}&"!"& `;
 
@@ -1939,7 +1939,7 @@ class QueryJoin {
                 const startRange = QueryJoin.replaceColumn(rangeComponents[0], selectField);
                 const endRange = QueryJoin.replaceColumn(rangeComponents[1], selectField);
 
-                const columnRange = rangeTable + startRange + ":" + endRange;
+                const columnRange = `${rangeTable}${startRange}:${endRange}`;
 
                 rightSelect = rightSelect === '' ? '' : `${rightSelect}&"!"& `;
 
