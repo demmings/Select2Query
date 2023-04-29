@@ -27,7 +27,9 @@ window.onload = function () { // Or window.addEventListener("load", function() {
     setDefaultSelect2QueryData();
 }
 
-
+/**
+ * Called from page to read inputs and generate Sheets Query statement.
+ */
 function select2Query() {
     console.log("Submitted");
 

@@ -157,7 +157,7 @@ class Select2Query {
         else
             queryWhere = this.resolveCondition(conditions.logic, conditions.terms, "");
 
-        return " WHERE " + queryWhere.trim();
+        return ` WHERE ${queryWhere.trim()}`;
     }
 
     /**
@@ -179,7 +179,7 @@ class Select2Query {
             }
 
             if (i + 1 < terms.length) {
-                queryWhere += " " + logic;
+                queryWhere += ` ${logic}`;
             }
         }
 
@@ -253,7 +253,7 @@ class Select2Query {
         orderBy = " ORDER BY "
         for (let i = 0; i < ast['ORDER BY'].length; i++) {
             const order = ast['ORDER BY'][i];
-            orderBy += order.name + " " + order.order.toUpperCase();
+            orderBy += `${order.name} ${order.order.toUpperCase()}`;
 
             if (i + 1 < ast['ORDER BY'].length) {
                 orderBy += ", ";
@@ -392,7 +392,7 @@ class QueryJoin {
         const startRange = QueryJoin.replaceColumn(rangeComponents[0], field);
         const endRange = QueryJoin.replaceColumn(rangeComponents[1], field);
 
-        return rangeTable + startRange + ":" + endRange;
+        return `${rangeTable}${startRange}:${endRange}`;
     }
 
     /**
@@ -436,7 +436,7 @@ class QueryJoin {
 
         const matchesQuery = `'"&TEXTJOIN("|", true, QUERY(${rightRange}, "SELECT ${leftFieldName} where ${leftFieldName} is not null"))&`;
         selectStr += matchesQuery;
-        selectStr = selectStr + label + '", 0)';
+        selectStr = `${selectStr}${label}", 0)`;
 
         //  If no records are found, we need to insert an empty record - otherwise we get an array error.
         selectStr = `;IFNA(${selectStr},${QueryJoin.ifNaResult(ast)})`;
@@ -561,7 +561,7 @@ class QueryJoin {
         for (const fld of sortedFields) {
             if (fld.isNull) {
                 label = label !== "" ? `${label}, ` : "";
-                label += fld.fieldName + " ''";
+                label += `${fld.fieldName} ''`;
             }
         }
 
@@ -601,7 +601,7 @@ class QueryJoin {
 
                 if (tableInfo.indexOf("!") !== -1) {
                     const parts = tableInfo.split("!");
-                    rangeTable = parts[0] + "!";
+                    rangeTable = `${parts[0]}!`;
                     range = parts[1];
                 }
 
@@ -613,7 +613,7 @@ class QueryJoin {
 
                 leftSelect = leftSelect === '' ? '' : `${leftSelect}&"!"& `;
 
-                leftSelect += 'IF(' + selectField + ' <> "",' + selectField + ', " ")';
+                leftSelect += `IF(${selectField} <> "",${selectField}, " ")`;
             }
         }
 
@@ -649,7 +649,7 @@ class QueryJoin {
 
                 if (tableInfo.indexOf("!") !== -1) {
                     const parts = tableInfo.split("!");
-                    rangeTable = parts[0] + "!";
+                    rangeTable = `${parts[0]}!`;
                     range = parts[1];
                 }
 
@@ -657,11 +657,11 @@ class QueryJoin {
                 const startRange = QueryJoin.replaceColumn(rangeComponents[0], selectField);
                 const endRange = QueryJoin.replaceColumn(rangeComponents[1], selectField);
 
-                selectField = rangeTable + startRange + ":" + endRange;
+                const columnRange = rangeTable + startRange + ":" + endRange;
 
                 rightSelect = rightSelect === '' ? '' : `${rightSelect}&"!"& `;
 
-                rightSelect += 'Split(Textjoin("!",1,IF(' + selectField + '<>"",' + selectField + '," ")),"!")';
+                rightSelect += `Split(Textjoin("!",1,IF(${columnRange}<>"",${columnRange}," ")),"!")`;
             }
         }
 

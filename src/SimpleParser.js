@@ -253,9 +253,17 @@ class SqlParse {
     static getPositionsOfSqlParts(modifiedQuery, parts_name) {
         // Write the position(s) in query of these separators
         const parts_order = [];
+
+        /**
+         * 
+         * @param {String} _match 
+         * @param {String} name 
+         * @returns {String}
+         */
         function realNameCallback(_match, name) {
             return name;
         }
+        
         parts_name.forEach(function (item) {
             let pos = 0;
             let part = 0;
@@ -900,6 +908,12 @@ class CondParser {
 
 /** Analyze each distinct component of SELECT statement. */
 class SelectKeywordAnalysis {
+    /**
+     * 
+     * @param {String} itemName 
+     * @param {Object} part 
+     * @returns {any}
+     */
     static analyze(itemName, part) {
         const keyWord = itemName.toUpperCase().replace(/ /g, '_');
 
@@ -910,6 +924,12 @@ class SelectKeywordAnalysis {
         return SelectKeywordAnalysis[keyWord](part);
     }
 
+    /**
+     * 
+     * @param {String} str 
+     * @param {Boolean} isOrderBy 
+     * @returns {Object[]}
+     */
     static SELECT(str, isOrderBy = false) {
         const selectParts = SelectKeywordAnalysis.protect_split(',', str);
         const selectResult = selectParts.filter(function (item) {
@@ -958,6 +978,11 @@ class SelectKeywordAnalysis {
         return { name, as, order };
     }
 
+    /**
+     * 
+     * @param {String} str 
+     * @returns {Object}
+     */
     static FROM(str) {
         const subqueryAst = this.parseForCorrelatedSubQuery(str);
         if (subqueryAst !== null) {
@@ -971,13 +996,14 @@ class SelectKeywordAnalysis {
             return subqueryAst;
         }
 
-        let fromResult = str.split(',');
+        let fromParts = str.split(',');
+        fromParts = fromParts.map(item => SelectKeywordAnalysis.trim(item));
 
-        fromResult = fromResult.map(item => SelectKeywordAnalysis.trim(item));
-        fromResult = fromResult.map(item => {
+        const fromResult = fromParts.map(item => {
             const [table, as] = SelectKeywordAnalysis.getNameAndAlias(item);
             return { table, as };
         });
+
         return fromResult[0];
     }
 
