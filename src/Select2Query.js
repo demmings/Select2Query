@@ -63,8 +63,6 @@ class Select2Query {
             query = this.formatAsQuery(queryStatement, ast.FROM.table);
         }
 
-        console.log(query);
-
         return query;
     }
 
@@ -91,7 +89,6 @@ class Select2Query {
         //  Should be:  TABLE NAME, TABLE RANGE, name, range, name, range,...
         let i = 0;
         while (i + 1 < parms.length) {
-            console.log(`Add Table: ${parms[i]}. Items=${parms[i + 1].length}`);
             tables.set(parms[i].trim().toUpperCase(), parms[i + 1]);
             i += 2;
         }

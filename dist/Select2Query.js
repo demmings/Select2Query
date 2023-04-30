@@ -260,7 +260,7 @@ class SqlParse {
             return name;
         }
         
-        parts_name.forEach(function (item) {
+        parts_name.forEach(item => {
             let pos = 0;
             let part = 0;
 
@@ -288,7 +288,7 @@ class SqlParse {
      */
     static removeDuplicateEntries(parts_order) {
         let busy_until = 0;
-        parts_order.forEach(function (item, key) {
+        parts_order.forEach( (item, key) => {
             if (busy_until > key)
                 delete parts_order[key];
             else {
@@ -336,7 +336,7 @@ class SqlParse {
     static analyzeParts(parts_order, parts) {
         const result = {};
         let j = 0;
-        parts_order.forEach(function (item) {
+        parts_order.forEach(item => {
             const itemName = item.toUpperCase();
             j++;
             const part_result = SelectKeywordAnalysis.analyze(item, parts[j]);
@@ -396,7 +396,7 @@ class SqlParse {
         if (typeof result[joinName] !== 'undefined') {
             if (typeof result.JOIN === 'undefined') result.JOIN = [];
             if (typeof result[joinName][0] !== 'undefined') {
-                result[joinName].forEach(function (item) {
+                result[joinName].forEach(item => {
                     item.type = joinType;
                     result.JOIN.push(item);
                 });
@@ -928,9 +928,8 @@ class SelectKeywordAnalysis {
      */
     static SELECT(str, isOrderBy = false) {
         const selectParts = SelectKeywordAnalysis.protect_split(',', str);
-        const selectResult = selectParts.filter(function (item) {
-            return item !== '';
-        }).map(item => SelectKeywordAnalysis.extractSelectField(item, isOrderBy));
+        const selectResult = selectParts.filter( item => item !== '')
+            .map(item => SelectKeywordAnalysis.extractSelectField(item, isOrderBy));
 
         if (selectResult.length === 0) {
             throw new Error("No fields SELECTED.");
@@ -1354,8 +1353,6 @@ class Select2Query {
             query = this.formatAsQuery(queryStatement, ast.FROM.table);
         }
 
-        console.log(query);
-
         return query;
     }
 
@@ -1382,7 +1379,6 @@ class Select2Query {
         //  Should be:  TABLE NAME, TABLE RANGE, name, range, name, range,...
         let i = 0;
         while (i + 1 < parms.length) {
-            console.log(`Add Table: ${parms[i]}. Items=${parms[i + 1].length}`);
             tables.set(parms[i].trim().toUpperCase(), parms[i + 1]);
             i += 2;
         }

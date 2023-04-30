@@ -1,5 +1,3 @@
-// import { Select2Query } from "./Select2Query";
-
 function setDefaultSelect2QueryData() {
     const select2QueryData = localStorage.getItem("Select2Query");
 
