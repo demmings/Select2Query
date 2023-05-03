@@ -65,7 +65,11 @@ class SqlParse {
         // Analyze parts
         const result = SqlParse.analyzeParts(parts_order, parts);
 
-        if (typeof result.FROM !== 'undefined' && typeof result.FROM.FROM !== 'undefined' && typeof result.FROM.FROM.as !== 'undefined' && result.FROM.FROM.as !== '') {
+        if (typeof result.FROM !== 'undefined' && typeof result.FROM.FROM !== 'undefined' && typeof result.FROM.FROM.as !== 'undefined') {
+            if (result.FROM.FROM.as === '') {
+                throw new Error("Every derived table must have its own alias");
+            }
+
             //   Subquery FROM creates an ALIAS name, which is then used as FROM table name.
             result.FROM.table = result.FROM.FROM.as;
             result.FROM.isDerived = true;
@@ -159,7 +163,7 @@ class SqlParse {
         // Define which words can act as separator
         const reg = SqlParse.makeSqlPartsSplitterRegEx(["UNION ALL", "UNION", "INTERSECT", "EXCEPT"]);
 
-        const matchedUnions = newStr.match(reg);
+        const matchedUnions = reg.exec(newStr);
         if (matchedUnions === null || matchedUnions.length === 0)
             return newStr;
 
@@ -837,20 +841,7 @@ class CondParser {
         if (operator === 'IN' || isSelectStatement) {
             astNode = this.parseSelectIn(astNode, isSelectStatement);
         }
-        else {
-            //  Are we within brackets of mathmatical expression ?
-            let inCurrentToken = this.currentToken;
-
-            while (inCurrentToken.type !== 'group' && inCurrentToken.type !== 'eot') {
-                this.readNextToken();
-                if (inCurrentToken.type !== 'group') {
-                    astNode += ` ${inCurrentToken.value}`;
-                }
-
-                inCurrentToken = this.currentToken;
-            }
-        }
-
+        
         this.readNextToken();
 
         return astNode;
@@ -858,7 +849,7 @@ class CondParser {
 
     /**
      * 
-     * @param {Object} startAstNode 
+     * @param {any} startAstNode 
      * @param {Boolean} isSelectStatement 
      * @returns {Object}
      */
@@ -1175,8 +1166,8 @@ class SelectKeywordAnalysis {
     static parseForCorrelatedSubQuery(selectField) {
         let subQueryAst = null;
 
-        const regExp = /\(\s*(SELECT[\s\S]+)\)/;
-        const matches = regExp.exec(selectField.toUpperCase());
+        const regExp = /\(\s*(SELECT[\s\S]+)\)/i;
+        const matches = regExp.exec(selectField);
 
         if (matches !== null && matches.length > 1) {
             subQueryAst = SqlParse.sql2ast(matches[1]);

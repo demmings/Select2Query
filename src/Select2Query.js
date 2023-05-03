@@ -511,10 +511,11 @@ class QueryJoin {
      */
     static ifNaResult(ast) {
         let naResult = "";
-        for (let i = 0; i < ast.SELECT.length; i++) {
+
+        ast.SELECT.forEach(_element => {
             naResult = (naResult === '') ? "" : `${naResult},`;
             naResult += '""';
-        }
+        });
 
         if (naResult !== "") {
             naResult = `{${naResult}}`;
