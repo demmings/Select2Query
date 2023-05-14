@@ -11,5 +11,8 @@ window.addEventListener("load", function() {
       .then(() => {
         alert("Success!");
       })
+      .catch(() => {
+        alert("Failed to save feedback.");
+      })
     });
   });
