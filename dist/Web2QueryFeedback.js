@@ -21,9 +21,11 @@ document.addEventListener("DOMContentLoaded", (event) => {
     fetchComments();
 });
 
-
+/**
+ * Get comments for 'Select2Query' project and insert into HTML.
+ */
 function fetchComments() {
-    const appsScriptGetFeedbackUrl = "https://script.google.com/macros/s/AKfycbxuZ5cu_gWo0g-q1B3JYTlJ41cbSdJAWlj3Y7lNHj83aFo8OkVM28XYpotk8UBbVr9x/exec";
+    const appsScriptGetFeedbackUrl = "https://script.google.com/macros/s/AKfycbzZEp0KvfORnqTFGSaj76KTlLf1NNMWfZF7eGDNV2b8lxbTtRtzGyDRjsP_zG-oeYjH/exec";
     const projectFilter = "?project=Select2Query";
     const fetchUrl = appsScriptGetFeedbackUrl + projectFilter;
     fetch(fetchUrl)
